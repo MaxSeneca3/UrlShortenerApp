@@ -1,0 +1,24 @@
+﻿services:
+  urlshortenerapp:
+    image: urlshortenerapp
+    build:
+      context: .
+      dockerfile: UrlShortenerApp/Dockerfile
+
+  businesslogic:
+    image: businesslogic
+    build:
+      context: .
+      dockerfile: BusinessLogic/Dockerfile
+
+  dataaccess:
+    image: dataaccess
+    build:
+      context: .
+      dockerfile: DataAccess/Dockerfile
+
+  unittests:
+    image: unittests
+    build:
+      context: .
+      dockerfile: UnitTests/Dockerfile
