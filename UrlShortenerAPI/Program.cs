@@ -2,12 +2,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using BusinessLogic.Interfaces;
+using BusinessLogic.Mapping;
 using BusinessLogic.Options;
 using BusinessLogic.Services;
 using DataAccess;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using DataAccess.Entities;
+using DataAccess.Interfaces;
+using DataAccess.Repositories;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,9 +50,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddAutoMapper(typeof(UrlMappingProfile)); // Add AutoMapper service
+
 // Register AuthService and TokenService
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<TokenService>();
+
+// Register UrlService
+builder.Services.AddScoped<IUrlRepository, UrlRepository>();
+builder.Services.AddScoped<IUrlShorteningService, UrlService>();
 
 // Add Swagger services for API documentation
 builder.Services.AddSwaggerGen();

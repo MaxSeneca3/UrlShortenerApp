@@ -1,9 +1,17 @@
-namespace BusinessLogic.Interfaces;
+using BusinessLogic.Dtos;
+using DataAccess.Entities;
 
-public interface IUrlShorteningService
+namespace BusinessLogic.Interfaces
 {
-    Task<string> ShortenUrlAsync(string originalUrl, Guid userId);
-    Task<string?> GetOriginalUrlAsync(string shortCode);
-    //Task<IEnumerable<ShortUrlDto>> GetAllUrlsAsync();
-    Task<bool> DeleteUrlAsync(Guid urlId, Guid userId, bool isAdmin);
+    public interface IUrlShorteningService
+    {
+        Task<bool> UrlExists(string originalUrl);
+        Task<ShortUrl> CreateShortUrl(CreateShortUrlDto dto);
+        Task<IEnumerable<ShortUrl>> GetAllUrls();
+        Task<ShortUrl> GetShortUrlById(int id);
+        Task<bool> DeleteUrl(int id, string userId);
+    }
 }
+
+
+
