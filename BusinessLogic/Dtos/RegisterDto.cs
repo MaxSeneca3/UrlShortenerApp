@@ -1,6 +1,6 @@
 namespace BusinessLogic.Dtos;
 
-public class RegisterDto
+public record RegisterDto
 {
     public string Username { get; set; } = string.Empty;
     public Guid UserId { get; set; }

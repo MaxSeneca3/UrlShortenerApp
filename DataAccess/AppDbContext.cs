@@ -12,8 +12,8 @@ namespace DataAccess
 
         // Add DbSet for ShortUrl
         public DbSet<ShortUrl> ShortUrls { get; set; }
-
-        // Optional: Configure entity mappings if needed
+        public DbSet<Url> OriginalUrls { get; set; }
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

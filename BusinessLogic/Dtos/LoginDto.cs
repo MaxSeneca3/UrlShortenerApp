@@ -1,6 +1,6 @@
 namespace BusinessLogic.Dtos;
 
-public class LoginDto
+public record LoginDto
 {
     public string Username { get; set; }
     public string Email { get; set; }

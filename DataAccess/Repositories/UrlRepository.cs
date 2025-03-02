@@ -15,17 +15,32 @@ namespace DataAccess.Repositories
             _context = context;
             _mapper = mapper; // Initialize the mapper
         }
+        public async Task<Url> CreateOriginalUrlAsync(string originalUrl, string userId)
+        {
+            var originalUrlEntity = new Url
+            {
+                OriginalUrl = originalUrl,
+                UserId = userId,
+                CreatedDate = DateTime.UtcNow
+            };
+
+            // Use _context.OriginalUrls for adding the entity
+            _context.OriginalUrls.Add(originalUrlEntity);
+            await _context.SaveChangesAsync();
+
+            return originalUrlEntity;
+        }
 
         public async Task<bool> UrlExists(string originalUrl)
         {
-            return await _context.ShortUrls.AnyAsync(url => url.OriginalUrl == originalUrl);
+            return await _context.OriginalUrls.AnyAsync(url => url.OriginalUrl == originalUrl); // Use _context.OriginalUrls
         }
 
         public async Task<ShortUrl> CreateShortUrl(ShortUrl shortUrl)
         {
-            _context.ShortUrls.Add(shortUrl);
-            await _context.SaveChangesAsync();
-            return shortUrl;
+            _context.ShortUrls.Add(shortUrl);  // Add the ShortUrl to the context
+            await _context.SaveChangesAsync();  // Save the changes to the database
+            return shortUrl;  // Return the created ShortUrl
         }
 
         public async Task<IEnumerable<ShortUrl>> GetAllUrls()
@@ -37,20 +52,10 @@ namespace DataAccess.Repositories
         {
             return await _context.ShortUrls.FindAsync(id);
         }
-
-        public async Task<bool> DeleteUrl(int id, string userId)
+        public async Task<bool> DeleteUrlAsync(int shortUrlId, string userId, bool isAdmin)
         {
             var rowsAffected = await _context.ShortUrls
-                .Where(url => url.Id == id && (url.UserId == userId || IsAdmin(userId)))
-                .ExecuteDeleteAsync(); // Executes delete on the database level directly
-
-            return rowsAffected > 0;
-        }
-
-        public async Task<bool> DeleteUrlAsync(Guid shortUrlId, Guid userId, bool isAdmin)
-        {
-            var rowsAffected = await _context.ShortUrls
-                .Where(url => url.ShortenedUrl == shortUrlId.ToString() && (url.UserId == userId.ToString() || isAdmin))
+                .Where(url => url.Id == shortUrlId && (isAdmin || url.UserId == userId)) // Admins delete any, normal users only own
                 .ExecuteDeleteAsync();
 
             return rowsAffected > 0;
@@ -71,8 +76,9 @@ namespace DataAccess.Repositories
 
         private bool IsAdmin(string userId)
         {
-            return true; // Example: admin logic could be based on roles or user ID
+            return true; // admin logic will be based on roles
         }
     }
 }
+
 

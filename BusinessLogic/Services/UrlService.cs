@@ -16,24 +16,38 @@ namespace BusinessLogic.Services
             _urlRepository = urlRepository;
             _mapper = mapper; // Initialize the mapper
         }
+        public async Task<Url> CreateOriginalUrlAsync(string originalUrl, string userId)
+        {
+            // Use the repository to create the original URL
+            return await _urlRepository.CreateOriginalUrlAsync(originalUrl, userId);
+        }
 
         public async Task<bool> UrlExists(string originalUrl)
         {
             return await _urlRepository.UrlExists(originalUrl);
         }
 
-        public async Task<ShortUrl> CreateShortUrl(CreateShortUrlDto dto)
+        public async Task<ShortUrl> CreateShortUrl(CreateShortUrlDto dto, string userId, string userName, string role)
         {
-            // Use AutoMapper to map the DTO to an entity
-            var shortUrl = _mapper.Map<ShortUrl>(dto);
-            shortUrl.ShortenedUrl = GenerateShortUrl();
-            shortUrl.CreatedAt = DateTime.UtcNow;
+            // Generate the shortened URL (this can be done using the GenerateShortenedUrl method)
+            var shortenedUrl = GenerateShortenedUrl(dto.OriginalUrl);
 
-            // Save the entity and return the mapped DTO
-            var createdShortUrl = await _urlRepository.CreateShortUrl(shortUrl);
-            return _mapper.Map<ShortUrl>(createdShortUrl); // Return the mapped DTO
+            var shortUrl = new ShortUrl
+            {
+                OriginalUrl = dto.OriginalUrl,
+                ShortenedUrl = shortenedUrl, // Set the generated shortened URL
+                UserId = userId,
+                Username = userName, // Add username
+                Role = role, // Add role
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // Save the short URL to the database
+            await _urlRepository.CreateShortUrl(shortUrl);
+            return shortUrl;
         }
 
+        
         public async Task<IEnumerable<ShortUrl>> GetAllUrls()
         {
             // Retrieve all URLs from the repository
@@ -50,14 +64,10 @@ namespace BusinessLogic.Services
             return _mapper.Map<ShortUrl>(shortUrl); // Return the mapped DTO
         }
 
-        public async Task<bool> DeleteUrl(int id, string userId)
+        public async Task<bool> DeleteUrlAsync(int id, string userId, bool isAdmin)
         {
-            return await _urlRepository.DeleteUrl(id, userId);
-        }
-
-        public async Task<bool> DeleteUrlAsync(Guid shortUrlId, Guid userId, bool isAdmin)
-        {
-            return await _urlRepository.DeleteUrlAsync(shortUrlId, userId, isAdmin);
+            // Call the repository to delete the URL, passing the user ID and admin status
+            return await _urlRepository.DeleteUrlAsync(id, userId, isAdmin);
         }
 
         // Implementing GetOriginalUrlAsync method from the interface
@@ -66,12 +76,12 @@ namespace BusinessLogic.Services
             return await _urlRepository.GetOriginalUrlAsync(shortUrl);
         }
 
-        public async Task<string> ShortenUrlAsync(string originalUrl, Guid userId)
+        public async Task<string> ShortenUrlAsync(string originalUrl, Guid userId, string username, string role)
         {
             // Check if the URL already exists in the repository
             if (await UrlExists(originalUrl))
             {
-                // Retrieve the existing shortened URL associated with the original URL
+                // Retrieve existing shortened URL associated with the original URL
                 var existingShortUrl = (await _urlRepository.GetAllUrls()) // Get all URLs
                     .FirstOrDefault(url => url.OriginalUrl == originalUrl); // Perform the filtering in memory
 
@@ -86,14 +96,18 @@ namespace BusinessLogic.Services
                 UserId = userId.ToString()
             };
 
-            var shortUrl = await CreateShortUrl(dto);
+            var shortUrl = await CreateShortUrl(dto, userId.ToString(), username, role); // Pass user info to service
             return shortUrl.ShortenedUrl;
         }
 
-        private string GenerateShortUrl()
+
+        private string GenerateShortenedUrl(string originalUrl)
         {
-            return Guid.NewGuid().ToString().Substring(0, 6); // Generates a short URL
+            // Implement the logic to generate a shortened URL (e.g., hashing the URL or using a base62 encoding)
+            var shortenedUrl = Guid.NewGuid().ToString("N").Substring(0, 8); // Example shortened URL logic
+            return shortenedUrl;
         }
     }
 }
+
 
