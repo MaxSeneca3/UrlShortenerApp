@@ -1,24 +1,30 @@
-﻿services:
-  urlshortenerapp:
-    image: urlshortenerapp
+﻿networks:
+  deploy-url-shortener-app:
+    driver: bridge
+services:
+  url-shortener-app:
+    container_name: url-shortener-app
     build:
       context: .
-      dockerfile: UrlShortenerApp/Dockerfile
-
-  businesslogic:
-    image: businesslogic
-    build:
-      context: .
-      dockerfile: BusinessLogic/Dockerfile
-
-  dataaccess:
-    image: dataaccess
-    build:
-      context: .
-      dockerfile: DataAccess/Dockerfile
-
-  unittests:
-    image: unittests
-    build:
-      context: .
-      dockerfile: UnitTests/Dockerfile
+      dockerfile: UrlShortenerAPI/Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      deploy-url-shortener-app:
+    depends_on:
+      - postgres_db
+  postgres_db:
+    container_name: postgresdata
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: url-shortener-app
+    ports:
+      - "5432:5432"
+    networks:
+      - deploy-url-shortener-app
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+volumes:
+  postgres-data:
