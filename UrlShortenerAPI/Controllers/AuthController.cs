@@ -14,7 +14,7 @@ public class AuthController : ControllerBase
     {
         _authService = authService;
     }
-
+       // Login view
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {

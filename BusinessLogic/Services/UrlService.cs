@@ -16,11 +16,6 @@ namespace BusinessLogic.Services
             _urlRepository = urlRepository;
             _mapper = mapper; // Initialize the mapper
         }
-        public async Task<Url> CreateOriginalUrlAsync(string originalUrl, string userId)
-        {
-            // Use the repository to create the original URL
-            return await _urlRepository.CreateOriginalUrlAsync(originalUrl, userId);
-        }
 
         public async Task<bool> UrlExists(string originalUrl)
         {
@@ -29,24 +24,24 @@ namespace BusinessLogic.Services
 
         public async Task<ShortUrl> CreateShortUrl(CreateShortUrlDto dto, string userId, string userName, string role)
         {
-            // Generate the shortened URL (this can be done using the GenerateShortenedUrl method)
+            // Generate the shortened URL
             var shortenedUrl = GenerateShortenedUrl(dto.OriginalUrl);
 
             var shortUrl = new ShortUrl
             {
                 OriginalUrl = dto.OriginalUrl,
-                ShortenedUrl = shortenedUrl, // Set the generated shortened URL
-                UserId = userId,
-                Username = userName, // Add username
-                Role = role, // Add role
+                ShortenedUrl = shortenedUrl,
+                UserId = userId, // Store the userId, the User entity will be linked automatically
+                Username = userName,
+                Role = role,
                 CreatedAt = DateTime.UtcNow
             };
 
             // Save the short URL to the database
             await _urlRepository.CreateShortUrl(shortUrl);
+
             return shortUrl;
         }
-
         
         public async Task<IEnumerable<ShortUrl>> GetAllUrls()
         {
@@ -64,10 +59,10 @@ namespace BusinessLogic.Services
             return _mapper.Map<ShortUrl>(shortUrl); // Return the mapped DTO
         }
 
-        public async Task<bool> DeleteUrlAsync(int id, string userId, bool isAdmin)
+        public async Task<bool> DeleteUrlAsync(int id)
         {
             // Call the repository to delete the URL, passing the user ID and admin status
-            return await _urlRepository.DeleteUrlAsync(id, userId, isAdmin);
+            return await _urlRepository.DeleteUrlAsync(id);
         }
 
         // Implementing GetOriginalUrlAsync method from the interface

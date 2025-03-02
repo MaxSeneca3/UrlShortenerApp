@@ -60,6 +60,7 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IUrlRepository, UrlRepository>();
 builder.Services.AddScoped<IUrlShorteningService, UrlService>();
 
+
 // Add Swagger services for API documentation
 builder.Services.AddSwaggerGen();
 

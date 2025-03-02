@@ -16,33 +16,9 @@ public class UrlController : ControllerBase
     {
         _urlService = urlService;
     }
-
-    [HttpPost("add-original-url")]
-    public async Task<IActionResult> CreateOriginalUrl([FromBody] CreateOriginalUrlDto dto)
-    {
-        // Validate the original URL
-        if (await _urlService.UrlExists(dto.OriginalUrl))
-        {
-            return BadRequest("This URL already exists.");
-        }
-
-        // Add the original URL
-        var originalUrl = await _urlService.CreateOriginalUrlAsync(dto.OriginalUrl, dto.UserId);
-
-        // Convert to response DTO
-        var responseDto = new OriginalUrlResponse
-        {
-            Id = originalUrl.Id,
-            OriginalUrl = originalUrl.OriginalUrl,
-            CreatedDate = originalUrl.CreatedDate,
-            UserId = originalUrl.UserId
-        };
-
-        return CreatedAtAction(nameof(CreateOriginalUrl), new { id = responseDto.Id }, responseDto);
-    }
     
-    //[Authorize] // Ensure user is authenticated
-    [HttpPost]
+    // Short Urls Table View
+    [HttpPost("Add-short-url")]
     public async Task<IActionResult> CreateShortUrl([FromBody] CreateShortUrlDto dto)
     {
         // Check if the URL already exists
@@ -55,8 +31,6 @@ public class UrlController : ControllerBase
         var shortUrl = await _urlService.CreateShortUrl(dto, dto.UserId, dto.UserName, dto.Role); // Pass user info to service
         return CreatedAtAction(nameof(GetShortUrlById), new { id = shortUrl.Id }, shortUrl);
     }
-
-
     
     [HttpGet]
     public async Task<IActionResult> GetAllUrls()
@@ -74,15 +48,25 @@ public class UrlController : ControllerBase
             return NotFound();
         }
         return Ok(shortUrl);
+    } 
+    
+    // Short Url Info
+    [HttpGet("ShortUrlInfo/{shortUrlId}")]
+    public async Task<IActionResult> GetShortUrlInfo(int shortUrlId)
+    {
+        var shortUrl = await _urlService.GetShortUrlById(shortUrlId);
+
+        if (shortUrl == null)
+        {
+            return NotFound("Short URL not found.");
+        }
+
+        return Ok(shortUrl); // Return the Short URL details
     }
     
-   // [Authorize] // Ensure user is authenticated
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUrlAsync(int id)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Get logged-in user ID
-        var isAdmin = User.IsInRole("Admin"); // Check if user is Admin
-
         // Retrieve the URL to delete
         var shortUrl = await _urlService.GetShortUrlById(id);
         if (shortUrl == null)
@@ -90,14 +74,8 @@ public class UrlController : ControllerBase
             return NotFound("URL not found.");
         }
 
-        // Admins can delete any URL, normal users can only delete their own URLs
-        if (!isAdmin && shortUrl.UserId != userId)
-        {
-            return Forbid("You can only delete your own URLs.");
-        }
-
-        // Delete the URL through the service
-        var result = await _urlService.DeleteUrlAsync(id, userId, isAdmin); // userId and isAdmin here
+        // If we don't need role-based checks, proceed to delete the URL directly
+        var result = await _urlService.DeleteUrlAsync(id);
         if (!result)
         {
             return BadRequest("Failed to delete URL.");
@@ -105,5 +83,4 @@ public class UrlController : ControllerBase
 
         return NoContent(); // 204 No Content
     }
-
 }
